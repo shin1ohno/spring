@@ -48,6 +48,8 @@ module Spring
         IO.select(@fds)
 
         if watcher.stale?
+          puts "Watcher stale; exiting #{Process.pid}, #{Rails.env}"
+          manager.close
           exit
         else
           serve manager.recv_io(UNIXSocket)

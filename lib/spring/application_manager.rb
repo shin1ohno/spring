@@ -27,10 +27,11 @@ module Spring
       start_wait_thread
     end
 
+    # Restarting is a background operation. If it fails, we don't want
+    # any terminal output. The user will see the output when they next
+    # try to run a command.
     def restart
-      # Restarting is a background operation. If it fails, we don't want
-      # any terminal output. The user will see the output when they next
-      # try to run a command.
+      @pid = nil
       start_child(true)
     end
 
@@ -61,10 +62,12 @@ module Spring
       with_child do
         child.send_io client
         child.gets
+        puts "sent client to #{@pid}"
       end
 
       child.gets.chomp.to_i # get the pid
     rescue Errno::ECONNRESET, Errno::EPIPE
+      puts "error while sending client to application"
       nil
     ensure
       client.close
@@ -95,6 +98,7 @@ module Spring
 
         Application.new(child_socket).start
       }
+      puts "started #{app_env} on #{@pid}"
       child_socket.close
     end
 
@@ -104,7 +108,6 @@ module Spring
 
         while alive?
           _, status = Process.wait2(pid)
-          @pid = nil
 
           # In the forked child, this will block forever, so we won't
           # return to the next iteration of the loop.
