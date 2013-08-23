@@ -104,6 +104,8 @@ module Spring
       connect_database
       setup command
 
+      ActiveRecord::Base.establish_connection if defined?(ActiveRecord::Base)
+
       ActionDispatch::Reloader.cleanup!
       ActionDispatch::Reloader.prepare!
 
